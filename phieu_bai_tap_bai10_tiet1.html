@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bài 10: Cấu trúc rẽ nhánh - Tin học 5 (CTST)</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Chosen Palette: Warm Neutrals & Scratch Orange -->
+    <!-- Application Structure Plan: 
+         1. Dashboard/Overview: High-level lesson goals and Digital Competency visualization (Radar Chart).
+         2. Interactive Theory (Tiết 1): Explains "If-Then" vs "If-Then-Else" using an interactive Logic Flow Simulator (Clickable decisions).
+         3. Virtual Exercise Sheet: A gamified version of the provided "Phieu_Bai_Tap" with instant feedback.
+         4. Practice Lab (Tiết 2): A Canvas-based simulation of the "Cat & Mouse" Scratch project, allowing students to "run code" and see logic in action.
+         Rationale: This structure moves from abstract goals to concrete concepts, then assessment, and finally application, mirroring the pedagogical flow of the lesson plan.
+    -->
+
+    <style>
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: #fdfaf6; /* Warm neutral background */
+            color: #333;
+        }
+        
+        /* Chart Container Styling - Mandatory Requirements */
+        .chart-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 600px; /* Constrain width */
+            margin-left: auto;
+            margin-right: auto; /* Center horizontally */
+            height: 350px; /* Base height */
+            max-height: 400px; /* Max height limit */
+        }
+
+        /* Custom Scratch Block Styling */
+        .scratch-block {
+            position: relative;
+            background-color: #FFAB19; /* Scratch Control Orange */
+            color: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-weight: 700;
+            box-shadow: 0 2px 0 #cf8b17;
+            display: inline-flex;
+            align-items: center;
+            cursor: default;
+            font-size: 0.9rem;
+        }
+        
+        .scratch-block::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 12px;
+            width: 15px;
+            height: 4px;
+            background-color: rgba(0,0,0,0.1);
+            border-bottom-left-radius: 4px;
+            border-bottom-right-radius: 4px;
+        }
+        
+        .scratch-block::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 12px;
+            width: 15px;
+            height: 4px;
+            background-color: #FFAB19;
+            border-bottom-left-radius: 4px;
+            border-bottom-right-radius: 4px;
+            z-index: 10;
+        }
+
+        .scratch-hex {
+            background-color: #4CBFE6; /* Sensing Blue */
+            padding: 4px 8px;
+            border-radius: 16px;
+            margin: 0 4px;
+            font-size: 0.8rem;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.2);
+        }
+
+        .scratch-c-mouth {
+            min-height: 20px;
+            border-left: 12px solid #FFAB19;
+            border-top: 4px solid #FFAB19;
+            border-bottom: 4px solid #FFAB19;
+            background-color: rgba(255, 171, 25, 0.1);
+            margin: 4px 0 4px 10px;
+            border-radius: 0 4px 4px 0;
+        }
+
+        /* Interactive Flowchart Nodes */
+        .flow-node {
+            transition: all 0.3s ease;
+        }
+        .flow-node.active {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(255, 171, 25, 0.5);
+            border-color: #FFAB19;
+        }
+
+        /* Navigation Active State */
+        .nav-btn.active {
+            background-color: #FFAB19;
+            color: white;
+            box-shadow: 0 4px 6px -1px rgba(255, 171, 25, 0.3);
+        }
+
+        /* Hide Scrollbar for clean UI */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <!-- Visualization & Content Choices:
+         1. Competency Radar Chart: Visualizes the focus on Programming (3.4) and Problem Solving (5.1) from the lesson plan.
+         2. Logic Flow Simulator: Replaces static diagrams. User clicks a "Condition" button, JS logic routes the path visibly. Goal: Teach Branching logic.
+         3. Canvas Game: Replaces static Scratch screenshots. A live, runnable simulation of the "Cat & Mouse" game described in Lesson 2. Goal: Demonstrate the result of the code.
+         4. Interactive Exercise: Replaces paper sheet. Drag-and-match or Click-to-select. Goal: Immediate assessment.
+    -->
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-orange-500 rounded-lg flex items-center justify-center text-white font-bold text-xl">10</div>
+                <div>
+                    <h1 class="text-lg font-bold text-gray-800 leading-tight">Cấu trúc Rẽ nhánh</h1>
+                    <p class="text-xs text-gray-500">Tin học Lớp 5 - Chân trời sáng tạo</p>
+                </div>
+            </div>
+            <div class="hidden md:flex items-center gap-2">
+                <span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold">Tiết 1: Lý thuyết</span>
+                <span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold">Tiết 2: Thực hành</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Navigation -->
+    <nav class="bg-white border-b border-gray-100">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex space-x-4 overflow-x-auto no-scrollbar py-3">
+                <button onclick="switchTab('overview')" id="btn-overview" class="nav-btn active px-4 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-orange-50 transition-colors whitespace-nowrap">Tổng quan & Mục tiêu</button>
+                <button onclick="switchTab('theory')" id="btn-theory" class="nav-btn px-4 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-orange-50 transition-colors whitespace-nowrap">Tiết 1: Mô phỏng Lý thuyết</button>
+                <button onclick="switchTab('exercise')" id="btn-exercise" class="nav-btn px-4 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-orange-50 transition-colors whitespace-nowrap">Phiếu Bài Tập</button>
+                <button onclick="switchTab('practice')" id="btn-practice" class="nav-btn px-4 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-orange-50 transition-colors whitespace-nowrap">Tiết 2: Phòng Lab Ảo</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Content Area -->
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+
+        <!-- SECTION: OVERVIEW -->
+        <section id="section-overview" class="space-y-8 animate-fade-in">
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">Mục tiêu Bài học</h2>
+                <p class="text-gray-600 mb-6">
+                    Trong bài học này, chúng ta sẽ tìm hiểu về cách máy tính đưa ra quyết định. Giống như việc em quyết định mang ô khi trời mưa, máy tính cũng cần các cấu trúc 
+                    <span class="font-bold text-orange-500">Nếu... Thì...</span> để hoạt động thông minh hơn.
+                </p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                    <div class="space-y-4">
+                        <div class="flex items-start gap-4">
+                            <div class="p-3 bg-orange-100 rounded-xl text-orange-600 text-2xl">⚡</div>
+                            <div>
+                                <h3 class="font-bold text-gray-800">Kiến thức Trọng tâm</h3>
+                                <ul class="text-sm text-gray-600 list-disc list-inside mt-1 space-y-1">
+                                    <li>Nhận biết tình huống rẽ nhánh trong đời sống.</li>
+                                    <li>Phân biệt dạng <strong>Thiếu</strong> và dạng <strong>Đủ</strong>.</li>
+                                    <li>Sử dụng khối lệnh Control trong Scratch.</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-4">
+                            <div class="p-3 bg-blue-100 rounded-xl text-blue-600 text-2xl">🎯</div>
+                            <div>
+                                <h3 class="font-bold text-gray-800">Yêu cầu cần đạt</h3>
+                                <p class="text-sm text-gray-600 mt-1">
+                                    Học sinh giải thích được kịch bản đơn giản và tự tạo được chương trình có điều kiện kiểm tra.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Competency Chart -->
+                    <div class="bg-gray-50 rounded-xl p-4">
+                        <h4 class="text-center text-sm font-bold text-gray-500 mb-2">Biểu đồ Năng lực Số (TT 02/2025)</h4>
+                        <div class="chart-wrapper">
+                            <canvas id="competencyChart"></canvas>
+                        </div>
+                        <div class="text-center mt-2 text-xs text-gray-400">
+                            Tập trung mạnh vào Lập trình (3.4) và Giải quyết vấn đề (5.1)
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION: THEORY (INTERACTIVE SIMULATION) -->
+        <section id="section-theory" class="hidden space-y-8">
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                <h2 class="text-2xl font-bold text-gray-800 mb-2">Khám phá: Máy tính suy nghĩ như thế nào?</h2>
+                <p class="text-gray-600 mb-6">Hãy tương tác với các tình huống dưới đây để hiểu sự khác biệt giữa hai dạng rẽ nhánh.</p>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    
+                    <!-- Dạng Thiếu -->
+                    <div class="border-2 border-dashed border-gray-200 rounded-2xl p-6 hover:border-orange-300 transition-colors">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-xl font-bold text-gray-700">1. Dạng Thiếu (If... Then)</h3>
+                            <span class="bg-orange-100 text-orange-600 px-3 py-1 rounded-full text-xs font-bold">Chỉ làm khi Đúng</span>
+                        </div>
+                        
+                        <div class="bg-gray-50 p-4 rounded-xl mb-4">
+                            <p class="text-center font-medium text-gray-600 mb-2">Tình huống: "Nếu trời mưa thì mang ô"</p>
+                            <div class="flex justify-center gap-4">
+                                <button onclick="simulateBranch('missing', true)" class="px-4 py-2 bg-blue-500 text-white rounded-lg shadow hover:bg-blue-600 transition">🌧️ Trời Mưa</button>
+                                <button onclick="simulateBranch('missing', false)" class="px-4 py-2 bg-yellow-500 text-white rounded-lg shadow hover:bg-yellow-600 transition">☀️ Trời Nắng</button>
+                            </div>
+                        </div>
+
+                        <!-- Visualization Flow -->
+                        <div class="flex flex-col items-center gap-2 text-sm">
+                            <div id="m-step1" class="flow-node w-32 py-2 bg-gray-200 rounded text-center border-2 border-transparent">Kiểm tra thời tiết</div>
+                            <div class="h-6 w-0.5 bg-gray-300"></div>
+                            
+                            <!-- Diamond Decision -->
+                            <div id="m-decision" class="flow-node w-24 h-24 bg-white border-2 border-gray-300 flex items-center justify-center text-center transform rotate-45 mb-2 relative">
+                                <span class="transform -rotate-45 font-bold text-xs">Có mưa không?</span>
+                                <!-- Path lines handled by absolute positioning visually simpler for HTML -->
+                            </div>
+                            
+                            <div class="flex w-full justify-center gap-8 relative">
+                                <!-- True Path -->
+                                <div class="flex flex-col items-center">
+                                    <div class="text-green-600 text-xs font-bold mb-1">ĐÚNG</div>
+                                    <div class="h-6 w-0.5 bg-green-500"></div>
+                                    <div id="m-action" class="flow-node w-32 py-2 bg-white border-2 border-gray-200 rounded text-center text-gray-400">Mang Ô ☂️</div>
+                                </div>
+                                <!-- False Path (Empty) -->
+                                <div class="flex flex-col items-center relative">
+                                    <div class="text-red-500 text-xs font-bold mb-1 absolute -top-8 -right-8">SAI (Không làm gì)</div>
+                                </div>
+                            </div>
+                            
+                            <div class="h-6 w-0.5 bg-gray-300 mt-2"></div>
+                            <div id="m-end" class="flow-node w-32 py-2 bg-gray-800 text-white rounded-full text-center">Kết thúc</div>
+                        </div>
+                        <p id="m-feedback" class="text-center mt-4 h-6 font-bold text-orange-600"></p>
+                    </div>
+
+                    <!-- Dạng Đủ -->
+                    <div class="border-2 border-dashed border-gray-200 rounded-2xl p-6 hover:border-blue-300 transition-colors">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-xl font-bold text-gray-700">2. Dạng Đủ (If... Then... Else)</h3>
+                            <span class="bg-blue-100 text-blue-600 px-3 py-1 rounded-full text-xs font-bold">Làm A hoặc B</span>
+                        </div>
+
+                        <div class="bg-gray-50 p-4 rounded-xl mb-4">
+                            <p class="text-center font-medium text-gray-600 mb-2">Tình huống: "Nếu đúng thì cộng điểm, sai thì trừ điểm"</p>
+                            <div class="flex justify-center gap-4">
+                                <button onclick="simulateBranch('full', true)" class="px-4 py-2 bg-green-500 text-white rounded-lg shadow hover:bg-green-600 transition">✅ Trả lời Đúng</button>
+                                <button onclick="simulateBranch('full', false)" class="px-4 py-2 bg-red-500 text-white rounded-lg shadow hover:bg-red-600 transition">❌ Trả lời Sai</button>
+                            </div>
+                        </div>
+
+                        <!-- Visualization Flow -->
+                        <div class="flex flex-col items-center gap-2 text-sm">
+                            <div id="f-step1" class="flow-node w-32 py-2 bg-gray-200 rounded text-center border-2 border-transparent">Kiểm tra đáp án</div>
+                            <div class="h-6 w-0.5 bg-gray-300"></div>
+                            
+                            <!-- Diamond Decision -->
+                            <div id="f-decision" class="flow-node w-24 h-24 bg-white border-2 border-gray-300 flex items-center justify-center text-center transform rotate-45 mb-2">
+                                <span class="transform -rotate-45 font-bold text-xs">Đúng không?</span>
+                            </div>
+                            
+                            <div class="flex w-full justify-between px-4 relative">
+                                <!-- True Path -->
+                                <div class="flex flex-col items-center w-1/2">
+                                    <div class="text-green-600 text-xs font-bold mb-1">ĐÚNG</div>
+                                    <div class="h-6 w-0.5 bg-green-500"></div>
+                                    <div id="f-action-true" class="flow-node w-28 py-2 bg-white border-2 border-gray-200 rounded text-center text-gray-400">Cộng 10 điểm 📈</div>
+                                </div>
+                                <!-- False Path -->
+                                <div class="flex flex-col items-center w-1/2">
+                                    <div class="text-red-500 text-xs font-bold mb-1">SAI</div>
+                                    <div class="h-6 w-0.5 bg-red-500"></div>
+                                    <div id="f-action-false" class="flow-node w-28 py-2 bg-white border-2 border-gray-200 rounded text-center text-gray-400">Trừ 5 điểm 📉</div>
+                                </div>
+                            </div>
+                            
+                            <div class="flex w-full justify-center mt-2">
+                                <div class="h-6 w-0.5 bg-gray-300"></div>
+                            </div>
+                            <div id="f-end" class="flow-node w-32 py-2 bg-gray-800 text-white rounded-full text-center">Kết thúc</div>
+                        </div>
+                         <p id="f-feedback" class="text-center mt-4 h-6 font-bold text-blue-600"></p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION: EXERCISE SHEET -->
+        <section id="section-exercise" class="hidden space-y-6">
+            <div class="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 max-w-4xl mx-auto">
+                <div class="border-b border-gray-200 pb-4 mb-6 flex justify-between items-end">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-800">Phiếu Bài Tập: Cấu trúc Rẽ nhánh</h2>
+                        <p class="text-sm text-gray-500">Hoàn thành các câu hỏi dưới đây để kiểm tra kiến thức của em.</p>
+                    </div>
+                    <div class="text-right">
+                        <span id="score-display" class="text-3xl font-bold text-orange-500">0/100</span>
+                        <span class="text-xs text-gray-400 block">Điểm số</span>
+                    </div>
+                </div>
+
+                <!-- Q1: Matching -->
+                <div class="mb-8">
+                    <h3 class="font-bold text-lg text-gray-800 mb-4">Câu 1: Nối tình huống (Click chọn cặp)</h3>
+                    <div class="grid grid-cols-2 gap-8">
+                        <div class="space-y-3" id="match-col-a">
+                            <button onclick="selectMatch('A', 1)" id="match-A1" class="w-full text-left p-3 border rounded-lg hover:bg-gray-50 transition text-sm">1. Nếu nhấn Space thì nhảy</button>
+                            <button onclick="selectMatch('A', 2)" id="match-A2" class="w-full text-left p-3 border rounded-lg hover:bg-gray-50 transition text-sm">2. Nếu điểm > 5 đậu, ngược lại trượt</button>
+                            <button onclick="selectMatch('A', 3)" id="match-A3" class="w-full text-left p-3 border rounded-lg hover:bg-gray-50 transition text-sm">3. Nếu chạm cạnh thì bật lại</button>
+                            <button onclick="selectMatch('A', 4)" id="match-A4" class="w-full text-left p-3 border rounded-lg hover:bg-gray-50 transition text-sm">4. Đúng cộng điểm, Sai trừ điểm</button>
+                        </div>
+                        <div class="space-y-3" id="match-col-b">
+                            <button onclick="selectMatch('B', 1)" id="match-B1" class="w-full text-left p-3 border rounded-lg hover:bg-gray-50 transition text-sm font-bold text-orange-600">A. Dạng Thiếu (If... Then)</button>
+                            <button onclick="selectMatch('B', 2)" id="match-B2" class="w-full text-left p-3 border rounded-lg hover:bg-gray-50 transition text-sm font-bold text-blue-600">B. Dạng Đủ (If... Else)</button>
+                        </div>
+                    </div>
+                    <p id="match-feedback" class="text-sm mt-2 font-bold min-h-[20px]"></p>
+                </div>
+
+                <!-- Q3: Block ID -->
+                <div class="mb-8">
+                    <h3 class="font-bold text-lg text-gray-800 mb-4">Câu 2: Nhận diện Khối lệnh</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-gray-50 p-4 rounded-xl flex flex-col items-center">
+                            <div class="scratch-block mb-4">
+                                nếu <span class="scratch-hex"> ? </span> thì
+                            </div>
+                            <div class="scratch-c-mouth w-full"></div>
+                            <select id="q2-select1" onchange="checkQ2()" class="mt-4 p-2 border rounded text-sm w-full">
+                                <option value="">-- Chọn tên gọi --</option>
+                                <option value="correct">Nếu... Thì (Dạng thiếu)</option>
+                                <option value="wrong">Nếu... Thì... Không thì (Dạng đủ)</option>
+                            </select>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-xl flex flex-col items-center">
+                            <div class="scratch-block mb-2">
+                                nếu <span class="scratch-hex"> ? </span> thì
+                            </div>
+                            <div class="scratch-c-mouth w-full mb-2"></div>
+                            <div class="scratch-block w-full" style="background: transparent; box-shadow: none; color: white; padding:0;">không thì</div>
+                            <div class="scratch-c-mouth w-full"></div>
+                            
+                            <select id="q2-select2" onchange="checkQ2()" class="mt-4 p-2 border rounded text-sm w-full">
+                                <option value="">-- Chọn tên gọi --</option>
+                                <option value="wrong">Nếu... Thì (Dạng thiếu)</option>
+                                <option value="correct">Nếu... Thì... Không thì (Dạng đủ)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Q5: Logic Writing -->
+                <div class="mb-8">
+                    <h3 class="font-bold text-lg text-gray-800 mb-4">Câu 3: Tư duy Lập trình</h3>
+                    <p class="text-gray-600 italic mb-4">"Mẹ dặn: Nếu con làm xong bài tập sớm thì mẹ cho đi xem phim, còn không làm xong thì phải ở nhà học bài."</p>
+                    <div class="space-y-3 bg-orange-50 p-6 rounded-xl border border-orange-100">
+                        <div class="flex items-center gap-2">
+                            <span class="font-bold text-orange-600 w-24">NẾU:</span>
+                            <input type="text" id="q3-if" placeholder="Điều kiện là gì?" class="flex-1 p-2 border rounded focus:ring-2 focus:ring-orange-300 outline-none">
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="font-bold text-green-600 w-24">THÌ:</span>
+                            <input type="text" id="q3-then" placeholder="Làm gì nếu đúng?" class="flex-1 p-2 border rounded focus:ring-2 focus:ring-green-300 outline-none">
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="font-bold text-red-600 w-24">KHÔNG THÌ:</span>
+                            <input type="text" id="q3-else" placeholder="Làm gì nếu sai?" class="flex-1 p-2 border rounded focus:ring-2 focus:ring-red-300 outline-none">
+                        </div>
+                        <button onclick="checkQ3()" class="mt-4 px-6 py-2 bg-orange-500 text-white rounded-lg shadow hover:bg-orange-600 font-bold w-full md:w-auto">Kiểm tra Đáp án</button>
+                        <p id="q3-feedback" class="hidden text-sm font-bold mt-2"></p>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- SECTION: PRACTICE LAB (CANVAS) -->
+        <section id="section-practice" class="hidden space-y-6">
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-800">Phòng Lab Ảo: Mèo bắt Chuột</h2>
+                        <p class="text-gray-600">Mô phỏng bài thực hành Tiết 2. Điều khiển Mèo chạm vào Chuột để xem mã chạy.</p>
+                    </div>
+                    <div class="mt-4 md:mt-0 flex gap-2">
+                        <button onclick="resetGame()" class="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 text-sm font-bold">Làm lại</button>
+                        <button id="btn-run-code" onclick="toggleGameCode()" class="px-4 py-2 bg-green-500 text-white rounded-lg shadow hover:bg-green-600 text-sm font-bold animate-pulse">▶ Chạy Mã Lệnh</button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Game Canvas -->
+                    <div class="lg:col-span-2 relative bg-gray-900 rounded-xl overflow-hidden shadow-inner" style="height: 400px;">
+                        <canvas id="gameCanvas" width="800" height="400" class="w-full h-full object-contain"></canvas>
+                        
+                        <!-- Overlay UI -->
+                        <div class="absolute bottom-4 left-4 right-4 flex justify-between pointer-events-none">
+                            <div class="bg-black bg-opacity-50 text-white px-3 py-1 rounded text-xs">
+                                Use Arrow Keys or Touch to Move
+                            </div>
+                            <div id="game-status" class="bg-black bg-opacity-70 text-green-400 font-mono px-3 py-1 rounded text-xs border border-green-500">
+                                Status: Waiting for Code...
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Code Block View -->
+                    <div class="bg-gray-50 rounded-xl p-4 border border-gray-200 flex flex-col h-full">
+                        <h3 class="font-bold text-gray-700 mb-4 flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-red-500" id="code-indicator"></span>
+                            Kịch bản (Scratch)
+                        </h3>
+                        
+                        <!-- Visualized Code Blocks -->
+                        <div class="space-y-1 opacity-50 transition-opacity duration-300" id="code-visualizer">
+                            <div class="scratch-block bg-yellow-400 border-none text-white">Khi bấm vào 🚩</div>
+                            <div class="scratch-block bg-orange-400 ml-0">liên tục</div>
+                            <div class="pl-3 border-l-4 border-orange-300 ml-3 space-y-1">
+                                <div class="scratch-block bg-blue-500">hướng về phía đối tượng mouse-pointer</div>
+                                <div class="scratch-block bg-blue-500">di chuyển 3 bước</div>
+                                
+                                <!-- The Logic Part -->
+                                <div class="scratch-block bg-orange-400 mt-2 transform scale-105 shadow-lg border-2 border-white z-10">
+                                    nếu <span class="scratch-hex bg-green-400">đang chạm Mouse?</span> thì
+                                </div>
+                                <div class="pl-3 border-l-4 border-orange-300 ml-3 py-1">
+                                    <div class="scratch-block bg-purple-500">nói "Bắt được rồi!" trong 2 giây</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-auto pt-4 border-t border-gray-200">
+                            <p class="text-xs text-gray-500 text-center">Nhấn "Chạy Mã Lệnh" để kích hoạt khối lệnh "Liên tục" và "Nếu... thì".</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-gray-100 mt-auto py-6">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <p class="text-sm text-gray-400">Thiết kế cho Bài 10: Cấu trúc Rẽ nhánh - Tin học 5 (Chân trời sáng tạo)</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // --- Global State ---
+        let currentTab = 'overview';
+        let matchSelection = { A: null, B: null };
+        let matchesFound = 0;
+        let score = 0;
+        
+        // Game State
+        let gameRunning = false;
+        let cat = { x: 50, y: 200, size: 40, angle: 0 };
+        let mouse = { x: 600, y: 200, size: 30 };
+        let canvas, ctx;
+        let animationId;
+        let keys = {};
+        let mousePos = { x: 0, y: 0 };
+
+        // --- Initialization ---
+        document.addEventListener('DOMContentLoaded', () => {
+            initCompetencyChart();
+            initGame();
+            
+            // Touch/Keyboard events for game
+            window.addEventListener('keydown', (e) => keys[e.key] = true);
+            window.addEventListener('keyup', (e) => keys[e.key] = false);
+        });
+
+        // --- Tab Switching ---
+        function switchTab(tabId) {
+            // Hide all sections
+            ['overview', 'theory', 'exercise', 'practice'].forEach(id => {
+                document.getElementById(`section-${id}`).classList.add('hidden');
+                document.getElementById(`btn-${id}`).classList.remove('active');
+            });
+
+            // Show selected
+            document.getElementById(`section-${tabId}`).classList.remove('hidden');
+            document.getElementById(`btn-${tabId}`).classList.add('active');
+            
+            // Specific actions
+            if (tabId === 'practice' && !gameRunning) {
+                drawGame(); // Initial draw
+            }
+        }
+
+        // --- 1. Competency Chart (Chart.js) ---
+        function initCompetencyChart() {
+            const ctx = document.getElementById('competencyChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: ['Lập trình (3.4)', 'Vấn đề Kỹ thuật (5.1)', 'Hợp tác số (2.4)', 'Bản quyền (3.3)', 'An toàn (4.1)'],
+                    datasets: [{
+                        label: 'Mức độ Tập trung',
+                        data: [5, 4, 3, 2, 2], // Emphasize 3.4 and 5.1 based on lesson plan
+                        fill: true,
+                        backgroundColor: 'rgba(255, 171, 25, 0.2)',
+                        borderColor: 'rgb(255, 171, 25)',
+                        pointBackgroundColor: 'rgb(255, 171, 25)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgb(255, 171, 25)'
+                    }]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: { color: '#eee' },
+                            grid: { color: '#eee' },
+                            pointLabels: {
+                                font: { size: 12, family: 'Nunito' },
+                                color: '#666'
+                            },
+                            suggestedMin: 0,
+                            suggestedMax: 5,
+                            ticks: { display: false } // Hide numbers for cleaner look
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        }
+
+        // --- 2. Interactive Theory Simulation ---
+        function simulateBranch(type, condition) {
+            // Reset Styles
+            const resetNodes = (prefix) => {
+                document.querySelectorAll(`[id^="${prefix}-"]`).forEach(el => {
+                    el.classList.remove('active', 'border-green-500', 'border-red-500', 'text-green-600', 'text-red-600');
+                    if (el.id.includes('action')) el.style.opacity = '0.5'; 
+                });
+                document.getElementById(`${prefix}-feedback`).innerText = '';
+            };
+
+            if (type === 'missing') {
+                resetNodes('m');
+                document.getElementById('m-step1').classList.add('active');
+                
+                setTimeout(() => {
+                    document.getElementById('m-decision').classList.add('active');
+                    
+                    setTimeout(() => {
+                        if (condition) {
+                            // Rain -> True -> Umbrella
+                            document.getElementById('m-action').classList.add('active', 'border-green-500', 'text-green-800');
+                            document.getElementById('m-action').style.opacity = '1';
+                            document.getElementById('m-feedback').innerText = "Trời mưa (ĐÚNG) -> Thực hiện: Mang Ô!";
+                            document.getElementById('m-feedback').className = "text-center mt-4 h-6 font-bold text-green-600";
+                        } else {
+                            // Sun -> False -> Do nothing
+                            document.getElementById('m-feedback').innerText = "Trời không mưa (SAI) -> Bỏ qua lệnh bên trong.";
+                            document.getElementById('m-feedback').className = "text-center mt-4 h-6 font-bold text-orange-600";
+                        }
+                        document.getElementById('m-end').classList.add('active');
+                    }, 500);
+                }, 500);
+            } else {
+                resetNodes('f');
+                document.getElementById('f-step1').classList.add('active');
+
+                setTimeout(() => {
+                    document.getElementById('f-decision').classList.add('active');
+
+                    setTimeout(() => {
+                        if (condition) {
+                            // Correct
+                            document.getElementById('f-action-true').classList.add('active', 'border-green-500', 'text-green-800');
+                            document.getElementById('f-action-true').style.opacity = '1';
+                            document.getElementById('f-feedback').innerText = "Trả lời đúng -> Rẽ sang nhánh CỘNG ĐIỂM";
+                            document.getElementById('f-feedback').className = "text-center mt-4 h-6 font-bold text-green-600";
+                        } else {
+                            // Wrong
+                            document.getElementById('f-action-false').classList.add('active', 'border-red-500', 'text-red-800');
+                            document.getElementById('f-action-false').style.opacity = '1';
+                            document.getElementById('f-feedback').innerText = "Trả lời sai -> Rẽ sang nhánh TRỪ ĐIỂM";
+                            document.getElementById('f-feedback').className = "text-center mt-4 h-6 font-bold text-red-600";
+                        }
+                        document.getElementById('f-end').classList.add('active');
+                    }, 500);
+                }, 500);
+            }
+        }
+
+        // --- 3. Interactive Exercise Logic ---
+        const correctMatches = {
+            1: 1, // Space -> If Then
+            2: 2, // Pass/Fail -> If Else
+            3: 1, // Edge -> If Then
+            4: 2  // Quiz -> If Else
+        };
+
+        function selectMatch(col, id) {
+            // Visual selection
+            document.querySelectorAll(`#match-col-${col.toLowerCase()} button`).forEach(b => b.classList.remove('bg-orange-100', 'border-orange-500'));
+            document.getElementById(`match-${col}${id}`).classList.add('bg-orange-100', 'border-orange-500');
+            
+            matchSelection[col] = id;
+
+            // Check if both selected
+            if (matchSelection.A && matchSelection.B) {
+                checkMatch();
+            }
+        }
+
+        function checkMatch() {
+            const feedback = document.getElementById('match-feedback');
+            const isCorrect = correctMatches[matchSelection.A] === matchSelection.B;
+
+            if (isCorrect) {
+                feedback.innerHTML = `<span class="text-green-600">Chính xác! Cặp ${matchSelection.A}-${matchSelection.B} đúng.</span>`;
+                // Disable clicked buttons to show completion
+                document.getElementById(`match-A${matchSelection.A}`).classList.add('opacity-50', 'cursor-not-allowed');
+                document.getElementById(`match-A${matchSelection.A}`).onclick = null;
+                // Reset selection
+                matchSelection = { A: null, B: null };
+                updateScore(10);
+            } else {
+                feedback.innerHTML = `<span class="text-red-500">Sai rồi! Hãy thử lại.</span>`;
+                // Reset visual
+                setTimeout(() => {
+                    document.querySelectorAll('.bg-orange-100').forEach(el => el.classList.remove('bg-orange-100', 'border-orange-500'));
+                    matchSelection = { A: null, B: null };
+                }, 1000);
+            }
+        }
+
+        function checkQ2() {
+            const s1 = document.getElementById('q2-select1').value;
+            const s2 = document.getElementById('q2-select2').value;
+            
+            if (s1 === 'correct' && s2 === 'correct') {
+                updateScore(30); // Big points for identifying both
+                alert("Tuyệt vời! Em đã nhận diện đúng cả 2 khối lệnh.");
+                document.getElementById('q2-select1').disabled = true;
+                document.getElementById('q2-select2').disabled = true;
+            }
+        }
+
+        function checkQ3() {
+            const i = document.getElementById('q3-if').value.toLowerCase();
+            const t = document.getElementById('q3-then').value.toLowerCase();
+            const e = document.getElementById('q3-else').value.toLowerCase();
+            const fb = document.getElementById('q3-feedback');
+
+            let points = 0;
+            // Flexible keyword checking
+            if (i.includes('bài tập') || i.includes('xong')) points += 10;
+            if (t.includes('xem phim')) points += 10;
+            if (e.includes('học bài') || e.includes('ở nhà')) points += 10;
+
+            fb.classList.remove('hidden');
+            if (points === 30) {
+                fb.innerText = "Hoàn hảo! Em đã dịch đúng ý của mẹ sang ngôn ngữ máy tính.";
+                fb.className = "text-sm font-bold mt-2 text-green-600";
+                updateScore(30);
+            } else if (points > 0) {
+                fb.innerText = "Khá tốt, nhưng hãy kiểm tra lại từng phần nhé.";
+                fb.className = "text-sm font-bold mt-2 text-orange-600";
+            } else {
+                fb.innerText = "Hãy đọc kỹ lại câu dặn của mẹ nhé.";
+                fb.className = "text-sm font-bold mt-2 text-red-600";
+            }
+        }
+
+        function updateScore(points) {
+            score += points;
+            // Cap at 100
+            if (score > 100) score = 100;
+            document.getElementById('score-display').innerText = `${score}/100`;
+        }
+
+        // --- 4. Canvas Game Simulation (Lab Tiết 2) ---
+        function initGame() {
+            canvas = document.getElementById('gameCanvas');
+            ctx = canvas.getContext('2d');
+            
+            // Mouse tracking for "touching mouse-pointer" logic
+            canvas.addEventListener('mousemove', (e) => {
+                const rect = canvas.getBoundingClientRect();
+                mousePos.x = (e.clientX - rect.left) * (canvas.width / rect.width);
+                mousePos.y = (e.clientY - rect.top) * (canvas.height / rect.height);
+                
+                // Update 'Mouse' object to follow cursor for interaction
+                mouse.x = mousePos.x;
+                mouse.y = mousePos.y;
+            });
+
+            // Mobile touch support
+            canvas.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                const rect = canvas.getBoundingClientRect();
+                const touch = e.touches[0];
+                mousePos.x = (touch.clientX - rect.left) * (canvas.width / rect.width);
+                mousePos.y = (touch.clientY - rect.top) * (canvas.height / rect.height);
+                mouse.x = mousePos.x;
+                mouse.y = mousePos.y;
+            }, { passive: false });
+        }
+
+        function toggleGameCode() {
+            const btn = document.getElementById('btn-run-code');
+            const indicator = document.getElementById('code-indicator');
+            const visualizer = document.getElementById('code-visualizer');
+            const status = document.getElementById('game-status');
+
+            gameRunning = !gameRunning;
+
+            if (gameRunning) {
+                btn.innerText = "⏹ Dừng Mã Lệnh";
+                btn.classList.remove('bg-green-500', 'hover:bg-green-600', 'animate-pulse');
+                btn.classList.add('bg-red-500', 'hover:bg-red-600');
+                indicator.classList.remove('bg-red-500');
+                indicator.classList.add('bg-green-500', 'animate-ping');
+                visualizer.classList.remove('opacity-50');
+                status.innerText = "Status: Running (Loop active)";
+                status.classList.remove('text-green-400');
+                status.classList.add('text-white');
+                animateGame();
+            } else {
+                btn.innerText = "▶ Chạy Mã Lệnh";
+                btn.classList.add('bg-green-500', 'hover:bg-green-600', 'animate-pulse');
+                btn.classList.remove('bg-red-500', 'hover:bg-red-600');
+                indicator.classList.add('bg-red-500');
+                indicator.classList.remove('bg-green-500', 'animate-ping');
+                visualizer.classList.add('opacity-50');
+                status.innerText = "Status: Code Stopped";
+                cancelAnimationFrame(animationId);
+            }
+        }
+
+        function resetGame() {
+            cat.x = 50;
+            cat.y = 200;
+            cat.angle = 0;
+            drawGame();
+        }
+
+        function animateGame() {
+            if (!gameRunning) return;
+            
+            // Logic: Move towards mouse
+            const dx = mouse.x - cat.x;
+            const dy = mouse.y - cat.y;
+            const dist = Math.sqrt(dx*dx + dy*dy);
+            
+            if (dist > 5) {
+                cat.x += (dx / dist) * 2; // Move speed 2
+                cat.y += (dy / dist) * 2;
+                cat.angle = Math.atan2(dy, dx);
+            }
+
+            // Logic: Branching check (Touching Mouse?)
+            // Simple circle collision
+            const collision = dist < (cat.size/2 + mouse.size/2);
+
+            drawGame(collision);
+
+            animationId = requestAnimationFrame(animateGame);
+        }
+
+        function drawGame(isSpeaking = false) {
+            // Clear
+            ctx.fillStyle = "#1a202c"; // Dark bg
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw Mouse (Goal)
+            ctx.fillStyle = "#9ca3af";
+            ctx.beginPath();
+            ctx.arc(mouse.x, mouse.y, mouse.size/2, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = "white";
+            ctx.font = "12px Nunito";
+            ctx.fillText("Mouse", mouse.x - 15, mouse.y - 20);
+
+            // Draw Cat (Player)
+            ctx.save();
+            ctx.translate(cat.x, cat.y);
+            // Simple Cat Shape
+            ctx.fillStyle = "#FFAB19"; // Orange Cat
+            ctx.beginPath();
+            ctx.arc(0, 0, cat.size/2, 0, Math.PI * 2);
+            ctx.fill();
+            // Eyes
+            ctx.fillStyle = "black";
+            ctx.beginPath();
+            ctx.arc(-8, -5, 4, 0, Math.PI * 2);
+            ctx.arc(8, -5, 4, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Speech Bubble if "Touching"
+            if (isSpeaking) {
+                ctx.fillStyle = "white";
+                ctx.beginPath();
+                ctx.roundRect(20, -50, 120, 40, 10);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.moveTo(20, -20);
+                ctx.lineTo(10, -10);
+                ctx.lineTo(30, -20);
+                ctx.fill();
+                
+                ctx.fillStyle = "black";
+                ctx.font = "bold 14px Nunito";
+                ctx.fillText("Bắt được rồi!", 30, -25);
+                
+                // Visual feedback in status
+                document.getElementById('game-status').innerText = "Status: CONDITION TRUE -> Action Executed";
+                document.getElementById('game-status').classList.add('text-green-400');
+            } else {
+                if (gameRunning) {
+                    document.getElementById('game-status').innerText = "Status: Condition False (Moving...)";
+                    document.getElementById('game-status').classList.remove('text-green-400');
+                }
+            }
+
+            ctx.restore();
+        }
+
+    </script>
+</body>
+</html>
